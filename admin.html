@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel de citas</title>
+<meta name="theme-color" content="#f4f9f8">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f4f9f8; --card:#fff; --ink:#10303a; --muted:#52707a; --line:rgba(16,48,58,.12);
+  --accent:#16908b; --accent-d:#0c6c69; --soft:#d3f0e9; --dark:#0a2c3a;
+  --warn:#b4412f; --warn-soft:#fbe9e5; --amber:#9a6200; --amber-soft:#fdf1d8; --ok:#1f7a52; --ok-soft:#dcf3e7; --wa:#12804a;
+  --body: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:400 1rem/1.45 var(--body);-webkit-font-smoothing:antialiased;min-height:100vh}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:10px}
+a{color:inherit}
+[hidden]{display:none!important}
+
+/* Entrada */
+.login{min-height:100vh;display:grid;place-items:center;padding:24px 16px}
+.login form{width:min(360px,100%);background:var(--card);border-radius:24px;padding:28px 24px;box-shadow:0 1px 0 var(--line),0 20px 50px -24px rgba(10,44,58,.35)}
+.login h1{font-size:1.5rem;letter-spacing:-.02em;font-weight:650}
+.login p{color:var(--muted);margin:6px 0 20px;font-size:.95rem}
+.login label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin:12px 0 6px}
+.login input{width:100%;height:50px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);padding:0 14px;font-size:1rem}
+.login input:focus{border-color:var(--accent);outline:none}
+.login .err{min-height:1.4em;color:var(--warn);font-size:.9rem;margin-top:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:999px;background:var(--accent);color:#fff;font-weight:600;transition:background-color .15s,transform .1s}
+.btn:hover{background:var(--accent-d)}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5;cursor:default}
+.login .btn{width:100%;margin-top:6px}
+
+/* Panel */
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 80%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.bar{max-width:880px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.bar h1{font-size:1.1rem;font-weight:650;letter-spacing:-.01em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar h1 small{display:block;font-size:.78rem;font-weight:500;color:var(--muted)}
+.ghost{min-height:40px;padding:0 14px;border-radius:999px;color:var(--muted);font-size:.9rem;font-weight:550}
+.ghost:hover{background:var(--line);color:var(--ink)}
+.tabs{max-width:880px;margin:0 auto;padding:0 16px 10px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;min-height:38px;padding:0 16px;border-radius:999px;font-size:.92rem;font-weight:550;color:var(--muted)}
+.tab .n{display:inline-block;min-width:20px;margin-left:6px;padding:1px 6px;border-radius:999px;background:var(--amber-soft);color:var(--amber);font-size:.74rem;font-weight:700}
+.tab[aria-selected="true"]{background:var(--dark);color:#fff}
+
+main{max-width:880px;margin:0 auto;padding:16px 16px 60px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
+.stat{background:var(--card);border-radius:18px;padding:14px 16px;box-shadow:0 1px 0 var(--line)}
+.stat b{display:block;font-size:1.7rem;font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{font-size:.84rem;color:var(--muted)}
+.day{margin-bottom:24px}
+.day h2{font-size:.82rem;font-weight:650;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 4px 8px}
+.day h2 em{font-style:normal;color:var(--accent-d);margin-left:6px}
+.list{display:grid;gap:8px}
+.cita{background:var(--card);border-radius:18px;padding:14px 16px;box-shadow:0 1px 0 var(--line);display:grid;grid-template-columns:82px 1fr;gap:4px 14px;align-items:start;transition:opacity .2s}
+.cita.off{opacity:.55}
+.hora{font-size:1.05rem;font-weight:650;font-variant-numeric:tabular-nums;padding-top:1px;white-space:nowrap}
+.who{min-width:0}
+.who b{font-weight:600}
+.who .svc{color:var(--muted);font-size:.92rem}
+.who .tel{font-size:.9rem;color:var(--accent-d);text-decoration:none;font-variant-numeric:tabular-nums}
+.who .tel:hover{text-decoration:underline}
+.badge{display:inline-block;margin-left:8px;padding:2px 9px;border-radius:999px;font-size:.74rem;font-weight:650;vertical-align:2px}
+.b-pendiente{background:var(--amber-soft);color:var(--amber)}
+.b-confirmada{background:var(--ok-soft);color:var(--ok)}
+.b-cancelada{background:var(--warn-soft);color:var(--warn)}
+.b-atendida{background:var(--soft);color:var(--accent-d)}
+.b-no_asistio{background:#eceff1;color:#55636b}
+.acts{grid-column:2;display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.act{min-height:36px;padding:0 13px;border-radius:999px;font-size:.86rem;font-weight:600;box-shadow:inset 0 0 0 1.5px var(--line);text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:background-color .15s,transform .1s}
+.act:hover{background:var(--bg)}
+.act:active{transform:scale(.96)}
+.act.main{background:var(--accent);color:#fff;box-shadow:none}
+.act.main:hover{background:var(--accent-d)}
+.act.wa{color:var(--wa)}
+.act.danger{color:var(--warn)}
+.act.sure{background:var(--warn);color:#fff;box-shadow:none}
+.act svg{width:15px;height:15px}
+.empty{text-align:center;color:var(--muted);padding:48px 16px;background:var(--card);border-radius:20px;box-shadow:0 1px 0 var(--line)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,120px);background:var(--dark);color:#fff;padding:12px 18px;border-radius:14px;font-size:.92rem;transition:transform .35s cubic-bezier(.2,.9,.3,1.2);max-width:calc(100% - 32px);z-index:10}
+.toast.show{transform:translate(-50%,0)}
+.who .doc{font-size:.86rem;color:var(--muted)}
+.who .rev{display:inline-flex;align-items:center;gap:4px;margin-top:4px;font-size:.84rem;color:var(--muted)}
+.star{color:#c78a12}
+
+/* Reseñas */
+.res{background:var(--card);border-radius:18px;padding:16px;box-shadow:0 1px 0 var(--line);display:grid;gap:8px}
+.res.off{opacity:.6}
+.res-top{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.res-stars{color:#c78a12;letter-spacing:1px;font-size:1.05rem}
+.res-stars .o{color:rgba(16,48,58,.18)}
+.res q{quotes:none;font-size:.98rem}
+.res q:empty::before{content:"Sin comentario";color:var(--muted);font-style:italic}
+.res small{color:var(--muted);font-size:.84rem}
+.b-aprobada{background:var(--ok-soft);color:var(--ok)}
+.b-oculta{background:#eceff1;color:#55636b}
+
+/* Servicios */
+.svc-row{background:var(--card);border-radius:18px;padding:16px;box-shadow:0 1px 0 var(--line);display:grid;gap:12px}
+.svc-row.off{opacity:.65}
+.svc-row h3{font-size:1rem;font-weight:650;display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.svc-row h3 small{font-weight:500;color:var(--muted);font-size:.82rem;white-space:nowrap}
+.svc-grid{display:grid;grid-template-columns:1fr 120px 130px;gap:10px;align-items:end}
+.svc-grid label,.new label{display:grid;gap:4px;font-size:.76rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.svc-grid input,.new input{width:100%;min-height:42px;padding:8px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);font-size:.95rem;text-transform:none;letter-spacing:0;font-weight:400;color:var(--ink)}
+.svc-grid input:focus,.new input:focus{outline:none;border-color:var(--accent)}
+.svc-foot{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:.9rem;cursor:pointer}
+.switch input{width:18px;height:18px;accent-color:var(--accent)}
+.new{margin-top:22px;background:var(--card);border-radius:18px;padding:16px;box-shadow:0 1px 0 var(--line);display:grid;gap:12px}
+.new h3{font-size:1rem;font-weight:650}
+@media (max-width:560px){.svc-grid{grid-template-columns:1fr 1fr}.svc-grid .wide{grid-column:1/-1}}
+
+/* Estadísticas: barras de una sola serie (un tono), valor en la punta */
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:14px}
+.chart{background:var(--card);border-radius:18px;padding:18px;box-shadow:0 1px 0 var(--line);min-width:0}
+.chart h3{font-size:1rem;font-weight:650;letter-spacing:-.01em}
+.chart .note{font-size:.84rem;color:var(--muted);margin:2px 0 14px}
+.bars{display:grid;gap:2px}
+.bar-r{display:grid;grid-template-columns:minmax(84px,38%) 1fr;gap:10px;align-items:center;min-height:30px;border-radius:8px;padding:0 4px;margin:0 -4px}
+.bar-r:hover{background:var(--bg)}
+.bar-r .lbl{font-size:.86rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-r .trk{display:flex;align-items:center;gap:8px;min-width:0}
+.bar-r .fill{height:18px;background:var(--accent);border-radius:0 4px 4px 0;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.bar-r:hover .fill{background:var(--accent-d)}
+.bar-r .val{font-size:.84rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.chart .none{font-size:.9rem;color:var(--muted);padding:10px 0}
+.chart details{margin-top:12px;font-size:.84rem}
+.chart summary{cursor:pointer;color:var(--accent-d);font-weight:600;width:max-content}
+.chart pre{margin-top:8px;padding:12px;border-radius:12px;background:var(--dark);color:#d6eeea;font:12.5px/1.5 ui-monospace,Consolas,monospace;overflow-x:auto;white-space:pre}
+@media (max-width:520px){
+  .stats{gap:8px}.stat{padding:12px}.stat b{font-size:1.4rem}
+  .cita{grid-template-columns:68px 1fr;gap:4px 10px;padding:14px}.hora{font-size:.95rem}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<section class="login" id="login" hidden>
+  <form id="login-form">
+    <h1>Panel de citas</h1>
+    <p>Entra con la cuenta de administrador.</p>
+    <label for="email">Correo</label>
+    <input id="email" type="email" autocomplete="username" required>
+    <label for="pass">Contraseña</label>
+    <input id="pass" type="password" autocomplete="current-password" required>
+    <div class="err" id="login-err" role="alert"></div>
+    <button class="btn" id="login-btn">Entrar</button>
+  </form>
+</section>
+
+<div id="app" hidden>
+  <header>
+    <div class="bar">
+      <h1 id="biz">Citas<small id="updated"></small></h1>
+      <button class="ghost" id="refresh">Actualizar</button>
+      <button class="ghost" id="logout">Salir</button>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-v="proximas">Próximas</button>
+      <button class="tab" role="tab" aria-selected="false" data-v="pasadas">Historial</button>
+      <button class="tab" role="tab" aria-selected="false" data-v="resenas">Reseñas</button>
+      <button class="tab" role="tab" aria-selected="false" data-v="servicios">Servicios</button>
+      <button class="tab" role="tab" aria-selected="false" data-v="estadisticas">Estadísticas</button>
+    </div>
+  </header>
+  <main>
+    <div class="stats" id="stats"></div>
+    <div id="days"><p class="empty">Cargando citas…</p></div>
+    <div id="other" hidden></div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtHora=t=>{const [h,m]=t.split(':').map(Number);return`${((h+11)%12)+1}:${String(m).padStart(2,'0')} ${h<12?'am':'pm'}`};
+const fecha=(f,opts)=>new Intl.DateTimeFormat('es-MX',{timeZone:'UTC',...opts}).format(new Date(f+'T12:00:00Z'));
+const ESTADO={pendiente:'Pendiente',confirmada:'Confirmada',cancelada:'Cancelada',atendida:'Atendida',no_asistio:'No asistió'};
+const WA_ICON='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.3.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.7-.1l.9-1.1c.2-.3.4-.2.7-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>';
+
+let vista='proximas',data=null,timer=0;
+const esCitas=v=>v==='proximas'||v==='pasadas';
+const STARS=n=>`<span class="res-stars" aria-label="${n} de 5">${'★'.repeat(n)}<span class="o">${'★'.repeat(5-n)}</span></span>`;
+const NOMBRE_RES={pendiente:'Por revisar',aprobada:'Publicada',oculta:'Oculta'};
+
+const S=window.SITE||{},SB=S.supabase||{};
+const db=window.supabase&&SB.url&&SB.anonKey?window.supabase.createClient(SB.url,SB.anonKey):null;
+const hoyMx=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Mexico_City',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+/* Ejecuta una consulta de Supabase y traduce sus errores */
+async function q(p){
+  const {data,error}=await p;
+  if(error){
+    if(error.code==='PGRST301'||error.code==='42501'||/jwt/i.test(error.message||'')){showLogin('Tu sesión terminó. Entra otra vez.');throw new Error('sesion')}
+    if(error.code==='23505')throw Object.assign(new Error('Ese registro ya existe.'),{code:'23505'});
+    if(error.code==='23514')throw new Error('Revisa los datos: hay un valor fuera de rango.');
+    throw new Error(error.message||'Algo falló');
+  }
+  return data;
+}
+/* Todo lo que el panel lee o cambia. Las reglas RLS de la base deciden si se permite. */
+const api={
+  async citas(vista){
+    const hoy=hoyMx();let r=db.from('v_citas').select('*');
+    r=vista==='pasadas'?r.lt('fecha',hoy).order('fecha',{ascending:false}).order('hora',{ascending:false}).limit(300)
+                       :r.gte('fecha',hoy).order('fecha').order('hora').order('id');
+    return {hoy,negocio:S.name||'Citas',citas:await q(r)};
+  },
+  async estadoCita(id,estado){
+    try{await q(db.from('citas').update({estado}).eq('id',id))}
+    catch(e){if(e.code==='23505')throw new Error('Esa hora ya tiene otra cita viva.');throw e}
+    const [cita]=await q(db.from('v_citas').select('*').eq('id',id));return {cita};
+  },
+  async resenas(){
+    const l=await q(db.from('v_resenas').select('*').order('creada',{ascending:false}).limit(300));
+    return {resenas:l.sort((a,b)=>(b.estado==='pendiente')-(a.estado==='pendiente'))};
+  },
+  estadoResena:(id,estado)=>q(db.from('resenas').update({estado}).eq('id',id)),
+  async servicios(){return {servicios:await q(db.from('v_servicios').select('*').order('orden').order('id'))}},
+  guardarServicio:(id,d)=>q(db.from('servicios').update(d).eq('id',id)),
+  async nuevoServicio(d){
+    const [ult]=await q(db.from('servicios').select('orden').order('orden',{ascending:false}).limit(1));
+    try{await q(db.from('servicios').insert({...d,orden:(ult?.orden??0)+1}))}
+    catch(e){if(e.code==='23505')throw new Error('Ya existe un servicio con ese nombre.');throw e}
+  },
+  async estadisticas(){return {estadisticas:await q(db.rpc('estadisticas'))}},
+};
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2800)}
+const stats=list=>{$('#stats').hidden=!list;if(list)$('#stats').innerHTML=list.map(([n,l])=>`<div class="stat"><b>${n}</b><span>${l}</span></div>`).join('')};
+
+/* ---------- Entrada ---------- */
+function showLogin(msg=''){clearInterval(timer);$('#app').hidden=true;$('#login').hidden=false;$('#login-err').textContent=msg;$('#pass').value='';($('#email').value?$('#pass'):$('#email')).focus()}
+const esAdmin=()=>q(db.rpc('es_admin')).catch(()=>false);
+$('#login-form').addEventListener('submit',async e=>{
+  e.preventDefault();const b=$('#login-btn');b.disabled=true;$('#login-err').textContent='';
+  try{
+    if(!db)throw new Error('Falta poner la url y la anon key de Supabase en config.js.');
+    const {error}=await db.auth.signInWithPassword({email:$('#email').value.trim(),password:$('#pass').value});
+    if(error)throw new Error(/invalid login/i.test(error.message)?'Correo o contraseña incorrectos.':error.message);
+    if(!await esAdmin()){await db.auth.signOut();throw new Error('Esta cuenta no tiene permiso de administrador.')}
+    data=null;start();
+  }catch(err){$('#login-err').textContent=err.message;$('#pass').select()}
+  b.disabled=false;
+});
+$('#logout').addEventListener('click',async()=>{try{await db.auth.signOut()}catch{}showLogin()});
+
+/* ---------- Carga según la pestaña ---------- */
+async function load(quiet){
+  try{
+    if(esCitas(vista)){data=await api.citas(vista);renderCitas()}
+    else if(vista==='resenas')renderResenas((await api.resenas()).resenas);
+    else if(vista==='servicios')renderServicios((await api.servicios()).servicios);
+    else renderStats((await api.estadisticas()).estadisticas);
+    $('#updated').textContent='Actualizado '+new Date().toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'});
+  }catch(e){if(e.message!=='sesion'&&!quiet)toast(e.message)}
+}
+async function badge(){try{const {resenas}=await api.resenas();setBadge(resenas)}catch{}}
+function setBadge(resenas){const n=resenas.filter(r=>r.estado==='pendiente').length,t=document.querySelector('.tab[data-v="resenas"]');
+  t.innerHTML='Reseñas'+(n?`<span class="n">${n}</span>`:'')}
+function start(){
+  $('#login').hidden=true;$('#app').hidden=false;
+  if(data&&esCitas(vista))renderCitas();else load();
+  badge();clearInterval(timer);
+  // Se refresca solo cada 30 s, menos en Servicios para no borrar lo que se está escribiendo.
+  timer=setInterval(()=>{if(vista!=='servicios')load(true)},30000);
+}
+function show(which){$('#days').hidden=which!=='days';$('#other').hidden=which!=='other'}
+
+/* ---------- Citas ---------- */
+const primerNombre=n=>String(n).split(' ')[0];
+function waConfirmar(c){
+  const txt=`Hola ${primerNombre(c.nombre)}, te escribimos de ${data.negocio}. Confirmamos tu cita de ${c.servicio} con ${c.dentista} el ${fecha(c.fecha,{weekday:'long',day:'numeric',month:'long'}).replace(',','')} a las ${fmtHora(c.hora)}. ¿Nos confirmas que vienes?`;
+  return`https://wa.me/52${c.telefono}?text=${encodeURIComponent(txt)}`;
+}
+function waResena(c){
+  const txt=`Hola ${primerNombre(c.nombre)}, gracias por venir a ${data.negocio}. ¿Nos cuentas cómo te fue? Te toma un minuto: ${new URL('resena.html?t='+c.resena_token,location.href).href}`;
+  return`https://wa.me/52${c.telefono}?text=${encodeURIComponent(txt)}`;
+}
+function actions(c){
+  const a=[],btn=(estado,label,cls='')=>`<button class="act ${cls}" data-id="${c.id}" data-estado="${estado}">${label}</button>`;
+  const wa=(href,label)=>`<a class="act wa" href="${esc(href)}" target="_blank" rel="noopener">${WA_ICON}${label}</a>`;
+  const pasada=c.fecha<data.hoy, hoy=c.fecha===data.hoy;
+  if(c.estado==='pendiente'){a.push(btn('confirmada','Confirmar','main'),wa(waConfirmar(c),'WhatsApp'),btn('cancelada','Cancelar','danger'))}
+  else if(c.estado==='confirmada'){
+    if(hoy||pasada)a.push(btn('atendida','Atendida','main'),btn('no_asistio','No asistió'));
+    a.push(wa(waConfirmar(c),'WhatsApp'));
+    if(!pasada)a.push(btn('cancelada','Cancelar','danger'));
+  }
+  else{
+    if(c.estado==='atendida'&&c.resena_token&&c.calificacion==null)a.push(wa(waResena(c),'Pedir reseña'));
+    a.push(btn(pasada&&c.estado!=='cancelada'?'confirmada':'pendiente','Deshacer'));
+  }
+  return a.join('');
+}
+function renderCitas(){
+  show('days');
+  $('#biz').firstChild.textContent=data.negocio||'Citas';
+  const vivas=data.citas.filter(c=>c.estado==='pendiente'||c.estado==='confirmada');
+  stats(vista==='proximas'
+    ?[[vivas.filter(c=>c.fecha===data.hoy).length,'Hoy'],[data.citas.filter(c=>c.estado==='pendiente').length,'Por confirmar'],[vivas.length,'Próximas']]
+    :[[data.citas.filter(c=>c.estado==='atendida').length,'Atendidas'],[data.citas.filter(c=>c.estado==='no_asistio').length,'No asistieron'],[data.citas.filter(c=>c.estado==='cancelada').length,'Canceladas']]);
+  if(!data.citas.length){$('#days').innerHTML=`<p class="empty">${vista==='proximas'?'Todavía no hay citas apartadas.':'Aún no hay historial.'}</p>`;return}
+  const groups=new Map();data.citas.forEach(c=>{if(!groups.has(c.fecha))groups.set(c.fecha,[]);groups.get(c.fecha).push(c)});
+  $('#days').innerHTML=[...groups].map(([f,list])=>{
+    const label=f===data.hoy?'Hoy':fecha(f,{weekday:'long',day:'numeric',month:'long'});
+    const n=list.filter(c=>c.estado==='pendiente'||c.estado==='confirmada').length;
+    return`<section class="day"><h2>${esc(label)}${n?`<em>${n} ${n===1?'cita':'citas'}</em>`:''}</h2><div class="list">${list.map(c=>`
+      <article class="cita ${c.estado==='cancelada'||c.estado==='no_asistio'?'off':''}">
+        <div class="hora">${fmtHora(c.hora)}</div>
+        <div class="who"><b>${esc(c.nombre)}</b><span class="badge b-${c.estado}">${ESTADO[c.estado]||esc(c.estado)}</span>
+          <div class="svc">${esc(c.servicio)}</div>
+          <div class="doc">con ${esc(c.dentista)}</div>
+          <a class="tel" href="tel:${esc(c.telefono)}">${esc(c.telefono.replace(/(\d{3})(\d{3})(\d{4})/,'$1 $2 $3'))}</a>
+          ${c.calificacion!=null?`<div class="rev"><span class="star">★</span> ${c.calificacion} · reseña ${esc((NOMBRE_RES[c.resena_estado]||'').toLowerCase())}</div>`:''}</div>
+        <div class="acts">${actions(c)}</div>
+      </article>`).join('')}</div></section>`;
+  }).join('');
+}
+$('#days').addEventListener('click',async e=>{
+  const b=e.target.closest('button[data-estado]');if(!b)return;
+  if(b.dataset.estado==='cancelada'&&!b.classList.contains('sure')){
+    b.classList.add('sure');b.textContent='¿Cancelar? Toca otra vez';
+    setTimeout(()=>{if(b.isConnected){b.classList.remove('sure');b.textContent='Cancelar'}},3500);return}
+  b.disabled=true;
+  try{const r=await api.estadoCita(+b.dataset.id,b.dataset.estado);
+    toast(`${primerNombre(r.cita.nombre)}: ${ESTADO[r.cita.estado].toLowerCase()}${r.cita.estado==='atendida'?' · ya puedes pedirle su reseña':''}`);await load(true)}
+  catch(err){if(err.message!=='sesion')toast(err.message);b.disabled=false}
+});
+
+/* ---------- Reseñas ---------- */
+function renderResenas(list){
+  show('other');setBadge(list);
+  const ok=list.filter(r=>r.estado==='aprobada');
+  const prom=ok.length?(ok.reduce((s,r)=>s+r.calificacion,0)/ok.length).toFixed(1):'–';
+  stats([[list.filter(r=>r.estado==='pendiente').length,'Por revisar'],[ok.length,'Publicadas'],[prom,'Promedio publicado']]);
+  if(!list.length){$('#other').innerHTML='<p class="empty">Todavía no hay reseñas. Marca una cita como "Atendida" y usa "Pedir reseña" para mandarle el enlace al paciente.</p>';return}
+  $('#other').innerHTML=`<div class="list">${list.map(r=>`
+    <article class="res ${r.estado==='oculta'?'off':''}">
+      <div class="res-top">${STARS(r.calificacion)}<span class="badge b-${r.estado}">${NOMBRE_RES[r.estado]}</span></div>
+      <q>${esc(r.comentario)}</q>
+      <small>${esc(r.nombre)} · ${esc(r.servicio)} con ${esc(r.dentista)} · cita del ${esc(fecha(r.fecha,{day:'numeric',month:'long'}))}</small>
+      <div class="acts" style="grid-column:auto;margin-top:2px">
+        ${r.estado!=='aprobada'?`<button class="act main" data-res="${r.id}" data-estado="aprobada">Publicar</button>`:''}
+        ${r.estado!=='oculta'?`<button class="act" data-res="${r.id}" data-estado="oculta">Ocultar</button>`:''}
+      </div>
+    </article>`).join('')}</div>`;
+}
+
+/* ---------- Servicios ---------- */
+function renderServicios(list){
+  show('other');stats(null);
+  $('#other').innerHTML=`<div class="list">${list.map(s=>`
+    <form class="svc-row ${s.activo?'':'off'}" data-svc="${s.id}">
+      <h3>${esc(s.nombre)}<small>${s.citas} ${s.citas===1?'cita':'citas'} en total</small></h3>
+      <div class="svc-grid">
+        <label class="wide">Descripción<input name="descripcion" maxlength="200" value="${esc(s.descripcion)}"></label>
+        <label>Duración (min)<input name="duracion_min" type="number" min="10" max="480" step="5" required value="${s.duracion_min}"></label>
+        <label>Precio desde ($)<input name="precio_desde" type="number" min="0" step="50" placeholder="Valoración" value="${s.precio_desde??''}"></label>
+      </div>
+      <div class="svc-foot">
+        <label class="switch"><input type="checkbox" name="activo" ${s.activo?'checked':''}> Se ofrece en la web</label>
+        <button class="act main">Guardar</button>
+      </div>
+    </form>`).join('')}</div>
+    <form class="new" id="new-svc">
+      <h3>Agregar servicio</h3>
+      <div class="svc-grid">
+        <label class="wide">Nombre<input name="nombre" maxlength="80" required minlength="3"></label>
+        <label>Duración (min)<input name="duracion_min" type="number" min="10" max="480" step="5" value="30" required></label>
+        <label>Precio desde ($)<input name="precio_desde" type="number" min="0" step="50" placeholder="Valoración"></label>
+        <label class="wide">Descripción<input name="descripcion" maxlength="200"></label>
+      </div>
+      <div class="svc-foot"><span></span><button class="act main">Agregar</button></div>
+    </form>`;
+}
+function datosForm(f){
+  const d={descripcion:f.descripcion.value.trim().slice(0,200),duracion_min:Number(f.duracion_min.value),
+    precio_desde:f.precio_desde.value===''?null:Number(f.precio_desde.value),activo:f.activo?f.activo.checked:true};
+  if(f.nombre)d.nombre=f.nombre.value.trim().slice(0,80);
+  if(f.nombre&&d.nombre.length<3)throw new Error('Escribe el nombre del servicio.');
+  if(!Number.isInteger(d.duracion_min)||d.duracion_min<10||d.duracion_min>480)throw new Error('La duración va de 10 a 480 minutos.');
+  if(d.precio_desde!=null&&!(d.precio_desde>=0))throw new Error('Precio no válido.');
+  return d;
+}
+$('#other').addEventListener('submit',async e=>{
+  e.preventDefault();const f=e.target,b=f.querySelector('button');b.disabled=true;
+  try{
+    if(f.id==='new-svc'){await api.nuevoServicio(datosForm(f));toast('Servicio agregado');}
+    else{await api.guardarServicio(+f.dataset.svc,datosForm(f));toast('Guardado · la web ya muestra el cambio');}
+    await load(true);
+  }catch(err){if(err.message!=='sesion')toast(err.message);b.disabled=false}
+});
+
+/* ---------- Estadísticas ---------- */
+const DIA=['','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+function renderStats(list){
+  show('other');stats(null);
+  $('#other').innerHTML=`<div class="charts">${list.map(e=>{
+    const filas=e.filas.map(f=>({...f,etiqueta:e.id==='faltas'?DIA[f.dia]:f.etiqueta}));
+    const max=e.unidad==='%'?100:e.unidad==='★'?5:Math.max(1,...filas.map(f=>f.valor||0));
+    const texto=f=>f.valor==null?'Sin reseñas':e.unidad==='%'?`${f.valor}% de ${f.total}`:e.unidad==='★'?`${f.valor.toFixed(1)} ★ · ${f.total}`:`${f.valor} ${f.valor===1?e.unidad.replace(/s$/,''):e.unidad}`;
+    const vacio=!filas.length||filas.every(f=>!f.valor);
+    return`<section class="chart">
+      <h3>${esc(e.titulo)}</h3><p class="note">${esc(e.nota)}</p>
+      ${vacio?'<p class="none">Aún no hay datos suficientes.</p>':`<div class="bars">${filas.map(f=>`
+        <div class="bar-r" title="${esc(f.etiqueta)}: ${esc(texto(f))}">
+          <span class="lbl">${esc(f.etiqueta)}</span>
+          <span class="trk"><span class="fill" style="width:${f.valor?Math.max(1,f.valor/max*100):0}%"></span><span class="val">${esc(texto(f))}</span></span>
+        </div>`).join('')}</div>`}
+      <details><summary>Ver consulta SQL</summary><pre>${esc(e.sql)}</pre></details>
+    </section>`}).join('')}</div>`;
+}
+
+/* ---------- Pestañas y acciones de reseñas ---------- */
+$('#other').addEventListener('click',async e=>{
+  const b=e.target.closest('button[data-res]');if(!b)return;b.disabled=true;
+  try{await api.estadoResena(+b.dataset.res,b.dataset.estado);
+    toast(b.dataset.estado==='aprobada'?'Publicada en la web':'Reseña oculta');await load(true)}
+  catch(err){if(err.message!=='sesion')toast(err.message);b.disabled=false}
+});
+document.querySelector('.tabs').addEventListener('click',e=>{const t=e.target.closest('.tab');if(!t)return;
+  document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===t));vista=t.dataset.v;
+  if(!esCitas(vista))$('#other').innerHTML='<p class="empty">Cargando…</p>';load()});
+$('#refresh').addEventListener('click',()=>load());
+addEventListener('visibilitychange',()=>{if(!document.hidden&&!$('#app').hidden&&vista!=='servicios')load(true)});
+
+/* ¿Ya hay sesión? */
+if(!db)showLogin('Falta poner la url y la anon key de Supabase en config.js.');
+else db.auth.getSession().then(async({data:s})=>{if(s.session&&await esAdmin())start();else showLogin()});
+</script>
+</body>
+</html>

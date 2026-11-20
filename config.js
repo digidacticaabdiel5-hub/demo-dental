@@ -9,6 +9,13 @@ window.SITE = {
   description: "Sitio de demostración de un consultorio dental: servicios, equipo, horarios y reserva de citas. Datos ficticios.",
   schemaType: "Dentist",
 
+  /* Base de datos en Supabase (Project Settings → API). Las dos son públicas a propósito:
+     la seguridad la ponen las reglas RLS de supabase/esquema.sql. NUNCA pongas aquí la service_role. */
+  supabase: {
+    url: "https://tfvmnqhdfinaviqvvwmx.supabase.co",
+    anonKey: "sb_publishable_acC-Wh_QzWxQoAzzCf-SVQ_qefn_9jB"   /* la "publishable" key (pública) */
+  },
+
   colors: {
     accent: "#16908b", accentDark: "#0c6c69", soft: "#d3f0e9",
     ink: "#0f2f3b", bg: "#f3faf8", dark: "#0a2c3a"
@@ -32,7 +39,7 @@ window.SITE = {
   },
 
   booking: {
-    mode: "whatsapp",
+    mode: "supabase",          /* "supabase" = citas reales en la base; si falta la url o la base no responde, usa WhatsApp */
     endpoint: "",
     accessKey: "",
     subject: "Nueva cita desde la web",
