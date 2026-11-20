@@ -87,7 +87,7 @@ main{max-width:880px;margin:0 auto;padding:16px 16px 60px}
 .toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,120px);background:var(--dark);color:#fff;padding:12px 18px;border-radius:14px;font-size:.92rem;transition:transform .35s cubic-bezier(.2,.9,.3,1.2);max-width:calc(100% - 32px);z-index:10}
 .toast.show{transform:translate(-50%,0)}
 .who .doc{font-size:.86rem;color:var(--muted)}
-.who .rev{display:inline-flex;align-items:center;gap:4px;margin-top:4px;font-size:.84rem;color:var(--muted)}
+.who .rev{display:flex;align-items:center;gap:4px;margin-top:4px;font-size:.84rem;color:var(--muted)}
 .star{color:#c78a12}
 
 /* Reseñas */
@@ -407,7 +407,7 @@ const DIA=['','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Doming
 function renderStats(list){
   show('other');stats(null);
   $('#other').innerHTML=`<div class="charts">${list.map(e=>{
-    const filas=e.filas.map(f=>({...f,etiqueta:e.id==='faltas'?DIA[f.dia]:f.etiqueta}));
+    const filas=e.filas.map(f=>({...f,etiqueta:f.dia!=null?DIA[f.dia]:f.etiqueta}));
     const max=e.unidad==='%'?100:e.unidad==='★'?5:Math.max(1,...filas.map(f=>f.valor||0));
     const texto=f=>f.valor==null?'Sin reseñas':e.unidad==='%'?`${f.valor}% de ${f.total}`:e.unidad==='★'?`${f.valor.toFixed(1)} ★ · ${f.total}`:`${f.valor} ${f.valor===1?e.unidad.replace(/s$/,''):e.unidad}`;
     const vacio=!filas.length||filas.every(f=>!f.valor);
